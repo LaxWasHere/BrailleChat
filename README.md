@@ -1,3 +1,3 @@
 Plugin that transforms normal chat to braille.
 
-See -> http://q.AwsmPwrd.com/Je27.png
+See -> http://i.imgur.com/nKOcfiy.png
