@@ -1,4 +1,9 @@
-name: BrailledChat
-version: 0.1
-author: LaxWasHere
+name: Brailled Chat
 main: net.poweredbyscience.braillechat.BrailleChat
+version: 0.2
+author: LaxWasHere
+description: Allows players to receive messages in Braille
+commands:
+  brailled:
+    description: Allows for players to receive messages in Braille
+    usage: /brailled

@@ -2,69 +2,44 @@ package net.poweredbyscience.braillechat;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * Created by John on 1/27/2015.
- *
+ * <p>
  * Some people just wanna watch the world burn, I on the other hand wanna set it on fire.
  */
 public class BrailleChat extends JavaPlugin implements Listener {
 
-    public static HashMap<Character, String> letterSets = new HashMap<Character, String>();
-    public ArrayList<UUID> braillers = new ArrayList<UUID>();
+    private static HashMap<Character, String> letterSets = new HashMap<Character, String>();
+    private ArrayList<UUID> braillers = new ArrayList<UUID>();
 
-    public void onEnable() {
-        Bukkit.getPluginManager().registerEvents(this, this);
-        addBrailles();
-        System.out.println(replaceChars("Hello World!"));
-    }
-
-    public static String replaceChars(String sentence) {
+    private static String replaceChars(String sentence) {
         char[] normalChars = sentence.toLowerCase().toCharArray();
         StringBuilder brailled = new StringBuilder();
         for (char c : normalChars) {
             //System.out.println("Getting key for " + c);
-             if (letterSets.containsKey(c)) {
+            if (letterSets.containsKey(c)) {
                 brailled.append(letterSets.get(c));
             } else {
-                 brailled.append(c);
-             }
+                brailled.append(c);
+            }
         }
         return brailled.toString();
     }
 
-    @EventHandler
-    public void onChat(AsyncPlayerChatEvent ev) {
-        if(braillers.contains(ev.getPlayer().getUniqueId())) {
-            ev.setMessage(replaceChars(ev.getMessage()));
-        }
-    }
-
-    @EventHandler
-    public void onCommand(PlayerCommandPreprocessEvent ev) { //Don't judge me
-        UUID pid = ev.getPlayer().getUniqueId();
-        if (ev.getMessage().equalsIgnoreCase("/brailled")) {
-           if (braillers.contains(pid)) {
-               braillers.remove(pid);
-               ev.getPlayer().sendMessage(ChatColor.RED + "Got ya!");
-           } else {
-               braillers.add(pid);
-               ev.getPlayer().sendMessage(ChatColor.RED + "Got ya!");
-           }
-            ev.setCancelled(true);
-        }
-
-    }
-
     //I'm sure there's a better way of doing this.
-    public static void addBrailles() {
+    private static void addBrailles() {
         letterSets.put(' ', "\u2800");
         letterSets.put('.', "\u2828");
         letterSets.put('a', "\u2801");
@@ -95,11 +70,38 @@ public class BrailleChat extends JavaPlugin implements Listener {
         letterSets.put('z', "\u2835");
     }
 
-    public static void main(String[] args) {
+    public void onEnable() {
+        Bukkit.getPluginManager().registerEvents(this, this);
         addBrailles();
-        Scanner r =  new Scanner(System.in);
-        System.out.println(replaceChars(r.nextLine()));
-        //System.out.println(replaceChars("My milkshakes brings all the boys to the yaaaard."));
+        getLogger().info(replaceChars("Hello World!"));
+    }
+
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent ev) {
+        for (Player player : ev.getRecipients()) {
+            if (braillers.contains(player.getUniqueId())) {
+                player.sendMessage(String.format(ev.getFormat(), ev.getPlayer().getDisplayName(), replaceChars(ev.getMessage())));
+                ev.getRecipients().remove(player);
+            }
+        }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {// Also, I'm judging you, Lax
+        if (command.getName().equalsIgnoreCase("brailled")) {
+            if (sender instanceof Player) {
+                UUID pid = ((Player) sender).getUniqueId();
+                if (braillers.contains(pid))
+                    braillers.remove(pid);
+                else
+                    braillers.add(((Player) sender).getUniqueId());
+                sender.sendMessage(ChatColor.RED + "Got ya!");
+            } else {
+                sender.sendMessage("You MUST be a player to run this command");
+            }
+            return true;
+        }
+        return false;
     }
 
     /*
